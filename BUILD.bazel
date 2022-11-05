@@ -47,11 +47,16 @@ haskell_binary(
 haskell_test(
   name = "hspec",
   src_strip_prefix = "test",
-  srcs = ["test/CheckGuessSpec.hs", "test/Spec.hs"],
+  srcs = [
+    "test/CheckGuessSpec.hs",
+    "test/ParserSpec.hs",
+    "test/Spec.hs",
+  ],
   main_file = "test/Spec.hs",
   deps = [
     ":base",
     ":mastermind",
+    "@stackage//:attoparsec",
     "@stackage//:hspec",
     "@stackage//:vector",
   ],
