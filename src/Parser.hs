@@ -1,15 +1,15 @@
-module Parser 
-  ( parseColor
-  , parseColors
+module Parser
+  ( parseColor,
+    parseColors,
   )
-  where
+where
 
-import           Control.Applicative              ((<|>))
-import           Data.Attoparsec.ByteString       (Parser)
-import qualified Data.Attoparsec.ByteString       as AP
-import qualified Data.Attoparsec.ByteString.Char8 as AP8
-import           Data.Vector.Unboxed              (fromList)
-import           Types                            (Color(..), Colors)
+import Control.Applicative ((<|>))
+import Data.Attoparsec.ByteString (Parser)
+import Data.Attoparsec.ByteString qualified as AP
+import Data.Attoparsec.ByteString.Char8 qualified as AP8
+import Data.Vector.Unboxed (fromList)
+import Types (Color (..), Colors)
 
 skipSpace :: Parser ()
 skipSpace = AP.skipWhile AP8.isHorizontalSpace

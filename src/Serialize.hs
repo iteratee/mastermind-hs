@@ -1,10 +1,11 @@
 {-# LANGUAGE NamedFieldPuns #-}
+
 module Serialize
-  ( encodeResult
-  ) where
+  ( encodeResult,
+  )
+where
 
 import Data.ByteString.Builder
-
 import Types
 
 encodeResult :: Result -> Builder

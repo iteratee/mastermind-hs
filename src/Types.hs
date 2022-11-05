@@ -1,25 +1,31 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
+
 module Types
-  ( Color(..)
-  , Colors
-  , Result(..)
-  ) where
+  ( Color (..),
+    Colors,
+    Result (..),
+  )
+where
 
-import Data.Word                      (Word)
-import Data.Vector.Unboxed         as U
-import Data.Vector.Generic         as G
+import Data.Vector.Generic as G
 import Data.Vector.Generic.Mutable as M
+import Data.Vector.Unboxed as U
+import Data.Word (Word)
 
-newtype Color = Color { unColor :: Int }
+newtype Color = Color {unColor :: Int}
   deriving (Eq, Ord, Show)
 
 newtype instance U.MVector s Color = MVColor (U.MVector s Int)
+
 unMVColor :: forall s. U.MVector s Color -> U.MVector s Int
 unMVColor (MVColor mvi) = mvi
-newtype instance U.Vector    Color = VColor  (U.Vector    Int)
+
+newtype instance U.Vector Color = VColor (U.Vector Int)
+
 unVColor :: U.Vector Color -> U.Vector Int
 unVColor (VColor vi) = vi
+
 instance M.MVector U.MVector Color where
   basicLength = M.basicLength . unMVColor
   {-# INLINE basicLength #-}
@@ -37,6 +43,7 @@ instance M.MVector U.MVector Color where
   {-# INLINE basicUnsafeWrite #-}
   basicUnsafeReplicate n (Color {unColor = intVal}) =
     MVColor <$> M.basicUnsafeReplicate n intVal
+
 instance G.Vector U.Vector Color where
   basicUnsafeIndexM (VColor vi) = fmap Color . G.basicUnsafeIndexM vi
   {-# INLINE basicUnsafeIndexM #-}
@@ -54,6 +61,7 @@ instance Unbox Color
 type Colors = U.Vector Color
 
 data Result = Result
-  { totalCorrectColors :: !Word
-  , totalCorrectPlaces :: !Word
-  } deriving (Eq, Ord, Show)
+  { totalCorrectColors :: !Word,
+    totalCorrectPlaces :: !Word
+  }
+  deriving (Eq, Ord, Show)

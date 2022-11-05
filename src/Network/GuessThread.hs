@@ -1,30 +1,32 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Network.GuessThread
-  ( guessThread
-  , guessThreadPickColors
-  ) where
-
-import           Prelude hiding (length, null)
-
-import           Control.Category                     ((>>>))
-import           Control.Monad                        (replicateM)
-import qualified Data.Attoparsec.ByteString     as AP (Result, IResult(..))
-import           Data.Attoparsec.ByteString           (parse)
-import           Data.ByteString.Builder              (byteString,
-                                                       toLazyByteString,
-                                                       Builder(..))
-import           Data.ByteString.Char8                (empty, null, ByteString)
-import           Data.Monoid                          ((<>), mempty)
-import           Data.Vector.Unboxed                  (fromList, length)
-import           System.Random.PCG                    (createSystemRandom)
-import           System.Random.PCG.Class              (Generator(..), uniformR)
-import           System.Socket                        (Socket(..), close, receive)
-import           System.Socket.Type.Stream            (Stream(..), sendAllLazy)
+  ( guessThread,
+    guessThreadPickColors,
+  )
+where
 
 import CheckGuess
+import Control.Category ((>>>))
+import Control.Monad (replicateM)
+import Data.Attoparsec.ByteString (parse)
+import Data.Attoparsec.ByteString qualified as AP (IResult (..), Result)
+import Data.ByteString.Builder
+  ( Builder (..),
+    byteString,
+    toLazyByteString,
+  )
+import Data.ByteString.Char8 (ByteString, empty, null)
+import Data.Monoid (mempty, (<>))
+import Data.Vector.Unboxed (fromList, length)
 import Parser
 import Serialize
+import System.Random.PCG (createSystemRandom)
+import System.Random.PCG.Class (Generator (..), uniformR)
+import System.Socket (Socket (..), close, receive)
+import System.Socket.Type.Stream (Stream (..), sendAllLazy)
 import Types
+import Prelude hiding (length, null)
 
 crlf :: Builder
 crlf = byteString "\r\n"
@@ -45,13 +47,14 @@ guessThreadRemainder :: Colors -> ByteString -> Socket f Stream p -> IO ()
 guessThreadRemainder secret remainder socket = do
   let maxCorrect :: Word = fromIntegral $ length secret
       closeIfEmptyElse :: (ByteString -> IO (Maybe a)) -> ByteString -> IO (Maybe a)
-      closeIfEmptyElse elseHandler bs | null bs = close socket >> return Nothing
-                                      | otherwise = elseHandler bs
+      closeIfEmptyElse elseHandler bs
+        | null bs = close socket >> return Nothing
+        | otherwise = elseHandler bs
       parseLoop :: ByteString -> IO (Maybe (Colors, ByteString))
       parseLoop parseRemainder =
         if null parseRemainder
-           then receive socket 4096 mempty >>= closeIfEmptyElse parseLoop
-           else parseResultLoop (parse parseColors parseRemainder)
+          then receive socket 4096 mempty >>= closeIfEmptyElse parseLoop
+          else parseResultLoop (parse parseColors parseRemainder)
       parseResultLoop :: AP.Result Colors -> IO (Maybe (Colors, ByteString))
       parseResultLoop (AP.Done newRemainder colors) = return $ Just (colors, newRemainder)
       parseResultLoop (AP.Fail _remainder _context _message) = return Nothing
@@ -65,7 +68,7 @@ guessThreadRemainder secret remainder socket = do
           textResult = encodeResult result
           toSend = toLazyByteString (textResult <> crlf)
        in do
-         sendAllLazy socket toSend mempty
-         if result == allCorrect maxCorrect
-            then close socket
-            else guessThreadRemainder secret newRemainder socket
+            sendAllLazy socket toSend mempty
+            if result == allCorrect maxCorrect
+              then close socket
+              else guessThreadRemainder secret newRemainder socket
