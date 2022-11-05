@@ -1,0 +1,69 @@
+# Set all target’s visibility in this package to "public".
+package(default_visibility = ["//visibility:public"])
+
+# Load rules_haskell rules.
+load(
+    "@rules_haskell//haskell:defs.bzl",
+    "haskell_binary",
+    "haskell_library",
+    "haskell_repl",
+    "haskell_test",
+    "haskell_toolchain_library",
+)
+
+# haskell_toolchain_library can access builtin GHC packages
+# and assign them a bazel target name, so that they
+# can be referenced as dependencies.
+haskell_toolchain_library(name = "base")
+
+haskell_library(
+  name = "mastermind",
+  src_strip_prefix = "src",
+  srcs = glob(["src/**/*.hs"]),
+  deps = [
+    ":base",
+    "@stackage//:async",
+    "@stackage//:attoparsec",
+    "@stackage//:bytestring",
+    "@stackage//:pcg-random",
+    "@stackage//:random",
+    "@stackage//:socket",
+    "@stackage//:vector",
+    "@stackage//:vector-algorithms",
+  ],
+)
+
+haskell_binary(
+  name = "mastermind-server",
+  src_strip_prefix = "app",
+  main_file = "app/Main.hs",
+  srcs = glob(["app/**/*.hs"]),
+  deps = [
+    ":base",
+    ":mastermind",
+  ],
+)
+
+haskell_test(
+  name = "hspec",
+  src_strip_prefix = "test",
+  srcs = ["test/CheckGuessSpec.hs", "test/Spec.hs"],
+  main_file = "test/Spec.hs",
+  deps = [
+    ":base",
+    ":mastermind",
+    "@stackage//:hspec",
+    "@stackage//:vector",
+  ],
+  ghcopts = ["-DHSPEC_DISCOVER=$(location @stackage-exe//hspec-discover)"],
+  tools = ["@stackage-exe//hspec-discover"],
+)
+
+haskell_repl(
+  name = "hie-bios",
+  collect_data = False,
+  deps = [
+    ":mastermind",
+    "@stackage//:hspec",
+  ],
+)

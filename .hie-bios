@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+bazelisk build //:hie-bios --output_groups=hie_bios
+cat bazel-bin/hie-bios@hie-bios >"$HIE_BIOS_OUTPUT"
+cat bazel-bin/hie-bios@hie-bios >/tmp/debug
+# Make warnings non-fatal
+echo -Wwarn >>"$HIE_BIOS_OUTPUT"
+echo "-package attoparsec" >>"$HIE_BIOS_OUTPUT"

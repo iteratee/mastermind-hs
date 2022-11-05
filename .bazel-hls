@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+bazelisk build \
+  @haskell-language-server-exe//haskell-language-server \
+  @haskell-language-server-exe//haskell-language-server:haskell-language-server-wrapper \
+  @haskell-language-server-exe//ghcide
+export PATH="$PWD/bazel-bin/external/haskell-language-server/haskell-language-server-1.8.0.0/_install/bin:/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:/home/kyle/go/bin"
+export PATH="$PWD/bazel-bin/external/haskell-language-server/ghcide-1.8.0.0/_install/bin/:$PATH"
+export PATH="$PWD/bazel-mastermind-hs/external/rules_haskell_ghc_nixpkgs_haskell_toolchain/bin:$PATH"
+bazel-bin/external/haskell-language-server/haskell-language-server-1.8.0.0/_install/bin/haskell-language-server-wrapper --debug --logfile /tmp/hls.log "$@"

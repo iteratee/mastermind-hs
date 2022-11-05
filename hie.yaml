@@ -1,0 +1,23 @@
+cradle:
+  multi:
+    - path: "./bazel-bin"
+      config:
+        cradle:
+          none:
+    - path: "./bazel-out"
+      config:
+        cradle:
+          none:
+    - path: "./bazel-testlogs"
+      config:
+        cradle:
+          none:
+    - path: "./bazel-mastermind-hs"
+      config:
+        cradle:
+          none:
+    - path: "./"
+      config:
+        cradle:
+          bios:
+            program: ".hie-bios"
