@@ -1,0 +1,4 @@
+bazel-bin
+bazel-mastermind-hs
+bazel-out
+bazel-testlogs
