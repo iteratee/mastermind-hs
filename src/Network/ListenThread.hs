@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Network.ListenThread
@@ -15,8 +16,10 @@ import Control.Concurrent.Async
     concurrently_,
     forConcurrently_,
     poll,
-    race,
+    pollSTM,
   )
+import Control.Concurrent.STM (atomically)
+import Control.Concurrent.STM.TChan (TChan (..), newTChanIO, tryReadTChan, writeTChan)
 import Data.ByteString (ByteString)
 import Network.GuessThread
 import System.Socket
@@ -46,31 +49,36 @@ colors = 6
 
 pegs = 4
 
--- Five Seconds in microseconds
-listenDelay = 5 * 1000 * 1000
+-- Half second in microseconds
+waitDelay = 5 * 100 * 1000
 
 listenAll :: IO ()
 listenAll = do
-  concurrently_ listen6 listen4
+  chan <- newTChanIO
+  concurrently_ (waitThread chan) $
+    concurrently_ (listen6 chan) (listen4 chan)
   where
-    listen4 = forConcurrently_ addrs4 $ \(addr, port) ->
-      listenThread @Inet @TCP addr port
-    listen6 = forConcurrently_ addrs6 $ \(addr, port) ->
-      listenThread @Inet6 @TCP addr port
+    listen4 chan =
+      forConcurrently_ addrs4 $
+        uncurry (listenThread @Inet @TCP chan)
+    listen6 chan =
+      forConcurrently_ addrs6 $
+        uncurry (listenThread @Inet6 @TCP chan)
 
 listenThread ::
   forall f p.
   (Family f, HasAddressInfo f, Protocol p, Show (SocketAddress f)) =>
+  TChan (Async ()) ->
   ByteString ->
   ByteString ->
   IO ()
-listenThread addrStr portStr = do
+listenThread chan addrStr portStr = do
   infos <- getAddressInfo (Just addrStr) (Just portStr) mempty :: IO [AddressInfo f Stream p]
   forConcurrently_ infos $ \info -> do
     sock <- typedSocket
     bind sock (socketAddress info)
     listen sock 0
-    listenThreadSocket sock
+    listenThreadSocket chan sock
   where
     typedGetAddressInfo ::
       Maybe ByteString ->
@@ -81,8 +89,15 @@ listenThread addrStr portStr = do
     typedSocket :: IO (Socket f Stream p)
     typedSocket = socket
 
-listenThreadSocket :: (Family f, Protocol p) => Socket f Stream p -> IO ()
-listenThreadSocket sock = do
+listenThreadSocket :: (Family f, Protocol p) => TChan (Async ()) -> Socket f Stream p -> IO ()
+listenThreadSocket chan sock = do
+  (connSock, _addr) <- accept sock
+  newChild <- async (guessThreadPickColors colors pegs connSock)
+  atomically $ writeTChan chan newChild
+  listenThreadSocket chan sock
+
+waitThread :: TChan (Async ()) -> IO ()
+waitThread chan =
   go [] []
   where
     go :: [Async ()] -> [Async ()] -> IO ()
@@ -90,11 +105,17 @@ listenThreadSocket sock = do
       pollResult <- poll unpolledChild
       case pollResult of
         Nothing -> go (unpolledChild : polledChildren) rest
-        Just _ -> go polledChildren rest
+        Just _ -> do
+          go polledChildren rest
     go polledChildren [] = do
-      raceResult <- race (threadDelay listenDelay) (accept sock)
-      case raceResult of
-        Left () -> go [] polledChildren
-        Right (connSock, _addr) -> do
-          newChild <- async (guessThreadPickColors colors pegs connSock)
-          go [] (newChild : polledChildren)
+      pollResult <- atomically $ do
+        readResult <- tryReadTChan chan
+        case readResult of
+          Just newChild -> (Just newChild,) <$> pollSTM newChild
+          Nothing -> return (Nothing, Nothing)
+      case pollResult of
+        (Just newChild, Nothing) -> go (newChild : polledChildren) []
+        (Just newChild, Just _) -> go polledChildren []
+        (Nothing, _) -> do
+          threadDelay waitDelay
+          go [] (reverse polledChildren)

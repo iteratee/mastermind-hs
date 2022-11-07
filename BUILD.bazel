@@ -28,6 +28,7 @@ haskell_library(
     "@stackage//:pcg-random",
     "@stackage//:random",
     "@stackage//:socket",
+    "@stackage//:stm",
     "@stackage//:vector",
     "@stackage//:vector-algorithms",
   ],

@@ -255,6 +255,7 @@ stack_snapshot(
         "pcg-random",
         "random",
         "socket",
+        "stm",
         "vector",
         "vector-algorithms",
     ],
