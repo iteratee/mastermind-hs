@@ -70,7 +70,7 @@ haskell_cabal_library(
     visibility = ["//visibility:public"],
 )
     """,
-    sha256 = "",
+    sha256 = "9f91a135c72452d5e856b7f027ef79a0ac80327909cd364e739b2998d800732e",
     strip_prefix = "hlint-3.4.1",
     urls = ["https://hackage.haskell.org/package/hlint-3.4.1/hlint-3.4.1.tar.gz"],
 )
@@ -89,7 +89,7 @@ haskell_cabal_library(
     visibility = ["//visibility:public"],
 )
     """,
-    sha256 = "",
+    sha256 = "9b9c78d1a73d5206b39b9961a06d1d8b604ec752d421010eb8b35d7cfc9d1c8d",
     strip_prefix = "ghc-lib-parser-ex-9.2.0.4",
     urls = ["https://hackage.haskell.org/package/ghc-lib-parser-ex-9.2.0.4/ghc-lib-parser-ex-9.2.0.4.tar.gz"],
 )
@@ -110,7 +110,7 @@ haskell_cabal_library(
     ],
 )
     """,
-    sha256 = "",
+    sha256 = "ba14abbc1ca9c482d2f52de6367af34cd301e8a60b1f6674d243c3dced379566",
     strip_prefix = "ghc-lib-parser-9.2.4.20220729",
     urls = ["https://hackage.haskell.org/package/ghc-lib-parser-9.2.4.20220729/ghc-lib-parser-9.2.4.20220729.tar.gz"],
 )
