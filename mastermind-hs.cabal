@@ -1,0 +1,76 @@
+cabal-version:      2.4
+name:               mastermind-hs
+version:            0.1.0.0
+build-type:         Simple
+
+-- A short (one-line) description of the package.
+synopsis:           Mastermind server
+
+-- A longer description of the package.
+description:        Plays the game of mastermind over network
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+-- license:
+author:             Kyle Butt
+maintainer:         kyle@iteratee.net
+
+-- A copyright notice.
+-- copyright:
+-- category:
+
+common shared-options
+    default-language: Haskell2010
+    build-depends:
+        async ^>=2.2.4,
+        attoparsec ^>=0.14.4,
+        base ^>=4.16.3.0,
+        bytestring ^>=0.11.3.1,
+        pcg-random ^>=0.1.3.7,
+        random ^>=1.2.1.1,
+        socket ^>=0.8.3.0,
+        stm ^>=2.5.0.2,
+        vector ^>=0.12.3.1,
+        vector-algorithms ^>=0.8.0.4,
+    ghc-options: -Wall -fwarn-tabs -Wcompat -Werror
+
+library
+    import: shared-options
+    exposed-modules:
+           CheckGuess,
+           Network.GuessThread,
+           Network.ListenThread,
+           Parser,
+           Serialize,
+           Types
+    hs-source-dirs:   src
+
+executable mastermind-server
+    import: shared-options
+    main-is:          Main.hs
+
+    hs-source-dirs:   app
+
+    build-depends:
+        base ^>=4.16.3.0,
+        mastermind-hs,
+
+test-suite spec
+    import: shared-options
+
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    hs-source-dirs:
+        test
+    ghc-options: -Wall -fwarn-tabs -Wcompat -Werror -DHSPEC_DISCOVER=hspec-discover
+    build-depends:
+        base ==4.*,
+        hspec ==2.*,
+        mastermind-hs
+    other-modules:
+        CheckGuessSpec,
+        ParserSpec
+    default-language: Haskell2010
+    build-tool-depends: hspec-discover:hspec-discover == 2.*
