@@ -32,6 +32,12 @@ haskell_library(
     "@stackage//:vector",
     "@stackage//:vector-algorithms",
   ],
+  ghcopts = [
+    "-Wall",
+    "-fwarn-tabs",
+    "-Wcompat",
+    "-Werror",
+  ]
 )
 
 haskell_binary(
@@ -61,7 +67,13 @@ haskell_test(
     "@stackage//:hspec",
     "@stackage//:vector",
   ],
-  ghcopts = ["-DHSPEC_DISCOVER=$(location @stackage-exe//hspec-discover)"],
+  ghcopts = [
+    "-Wall",
+    "-fwarn-tabs",
+    "-Wcompat",
+    "-Werror",
+    "-DHSPEC_DISCOVER=$(location @stackage-exe//hspec-discover)",
+  ],
   tools = ["@stackage-exe//hspec-discover"],
 )
 

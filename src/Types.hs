@@ -1,4 +1,6 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
 
 module Types
@@ -8,10 +10,9 @@ module Types
   )
 where
 
-import Data.Vector.Generic as G
-import Data.Vector.Generic.Mutable as M
-import Data.Vector.Unboxed as U
-import Data.Word (Word)
+import Data.Vector.Generic qualified as G
+import Data.Vector.Generic.Mutable qualified as M
+import Data.Vector.Unboxed qualified as U
 
 newtype Color = Color {unColor :: Int}
   deriving (Eq, Ord, Show)
@@ -56,7 +57,7 @@ instance G.Vector U.Vector Color where
   basicUnsafeSlice n m = VColor . G.basicUnsafeSlice n m . unVColor
   {-# INLINE basicUnsafeSlice #-}
 
-instance Unbox Color
+instance U.Unbox Color
 
 type Colors = U.Vector Color
 

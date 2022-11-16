@@ -1,4 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module CheckGuess
   ( allCorrect,
@@ -6,18 +8,16 @@ module CheckGuess
   )
 where
 
-import Control.Monad.ST.Strict (ST (..), runST)
+import Control.Monad.ST.Strict (ST, runST)
 import Data.Monoid (Sum (..))
 import Data.Vector.Algorithms.Insertion (sort)
 import Data.Vector.Generic (basicUnsafeFreeze)
-import Data.Vector.Generic qualified as G
 import Data.Vector.Unboxed
   ( MVector,
     Vector,
     foldMap',
     length,
     thaw,
-    unsafeThaw,
     zipWith,
     (!),
   )

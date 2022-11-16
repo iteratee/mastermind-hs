@@ -1,4 +1,6 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Network.GuessThread
   ( guessThread,
@@ -12,19 +14,18 @@ import Control.Monad (replicateM)
 import Data.Attoparsec.ByteString (parse)
 import Data.Attoparsec.ByteString qualified as AP (IResult (..), Result)
 import Data.ByteString.Builder
-  ( Builder (..),
+  ( Builder,
     byteString,
     toLazyByteString,
   )
 import Data.ByteString.Char8 (ByteString, empty, null)
-import Data.Monoid (mempty, (<>))
 import Data.Vector.Unboxed (fromList, length)
 import Parser
 import Serialize
 import System.Random.PCG (createSystemRandom)
 import System.Random.PCG.Class (Generator (..), uniformR)
-import System.Socket (Socket (..), close, receive)
-import System.Socket.Type.Stream (Stream (..), sendAllLazy)
+import System.Socket (Socket, close, receive)
+import System.Socket.Type.Stream (Stream, sendAllLazy)
 import Types
 import Prelude hiding (length, null)
 
@@ -36,8 +37,8 @@ pickColors colors pegs =
   fmap fromList . replicateM pegs . fmap Color . uniformR (0, colors - 1)
 
 guessThreadPickColors :: Int -> Int -> Socket f Stream p -> IO ()
-guessThreadPickColors colors pegs socket = do
-  colors <- pickColors colors pegs =<< createSystemRandom
+guessThreadPickColors nColors nPegs socket = do
+  colors <- pickColors nColors nPegs =<< createSystemRandom
   guessThread colors socket
 
 guessThread :: Colors -> Socket f Stream p -> IO ()
@@ -68,7 +69,7 @@ guessThreadRemainder secret remainder socket = do
           textResult = encodeResult result
           toSend = toLazyByteString (textResult <> crlf)
        in do
-            sendAllLazy socket toSend mempty
+            _ <- sendAllLazy socket toSend mempty
             if result == allCorrect maxCorrect
               then close socket
               else guessThreadRemainder secret newRemainder socket

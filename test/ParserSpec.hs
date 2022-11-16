@@ -3,7 +3,7 @@
 
 module ParserSpec where
 
-import Data.Attoparsec.ByteString (IResult (..), Result, parse)
+import Data.Attoparsec.ByteString (IResult (..), parse)
 import Data.Vector.Unboxed (fromList)
 import Parser
 import Test.Hspec

@@ -5,6 +5,7 @@ import Data.Vector.Unboxed (fromList)
 import Test.Hspec
 import Types
 
+emptyResult :: Result
 emptyResult =
   Result
     { totalCorrectColors = 0,

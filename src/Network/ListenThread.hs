@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
@@ -19,37 +20,41 @@ import Control.Concurrent.Async
     pollSTM,
   )
 import Control.Concurrent.STM (atomically)
-import Control.Concurrent.STM.TChan (TChan (..), newTChanIO, tryReadTChan, writeTChan)
+import Control.Concurrent.STM.TChan (TChan, newTChanIO, tryReadTChan, writeTChan)
 import Data.ByteString (ByteString)
 import Network.GuessThread
 import System.Socket
   ( AddressInfo (..),
-    AddressInfoFlags,
     Family (..),
     HasAddressInfo (..),
     Protocol (..),
-    Socket (..),
+    Socket,
     accept,
     bind,
     getAddressInfo,
     listen,
     socket,
   )
-import System.Socket.Family.Inet (Inet (..))
-import System.Socket.Family.Inet6 (Inet6 (..))
-import System.Socket.Protocol.TCP (TCP (..))
-import System.Socket.Type.Stream (Stream (..))
+import System.Socket.Family.Inet (Inet)
+import System.Socket.Family.Inet6 (Inet6)
+import System.Socket.Protocol.TCP (TCP)
+import System.Socket.Type.Stream (Stream)
 
 addrs6 :: [(ByteString, ByteString)]
 addrs6 = [("::1", "12345")]
 
+addrs4 :: [(ByteString, ByteString)]
 addrs4 = [("127.0.0.1", "12345")]
 
+colors :: Int
 colors = 6
 
+pegs :: Int
 pegs = 4
 
 -- Half second in microseconds
+-- 
+waitDelay :: Int
 waitDelay = 5 * 100 * 1000
 
 listenAll :: IO ()
@@ -67,7 +72,7 @@ listenAll = do
 
 listenThread ::
   forall f p.
-  (Family f, HasAddressInfo f, Protocol p, Show (SocketAddress f)) =>
+  (Family f, HasAddressInfo f, Protocol p) =>
   TChan (Async ()) ->
   ByteString ->
   ByteString ->
@@ -75,19 +80,10 @@ listenThread ::
 listenThread chan addrStr portStr = do
   infos <- getAddressInfo (Just addrStr) (Just portStr) mempty :: IO [AddressInfo f Stream p]
   forConcurrently_ infos $ \info -> do
-    sock <- typedSocket
+    sock <- socket @f @Stream @p
     bind sock (socketAddress info)
     listen sock 0
     listenThreadSocket chan sock
-  where
-    typedGetAddressInfo ::
-      Maybe ByteString ->
-      Maybe ByteString ->
-      AddressInfoFlags ->
-      IO [AddressInfo f Stream p]
-    typedGetAddressInfo = getAddressInfo
-    typedSocket :: IO (Socket f Stream p)
-    typedSocket = socket
 
 listenThreadSocket :: (Family f, Protocol p) => TChan (Async ()) -> Socket f Stream p -> IO ()
 listenThreadSocket chan sock = do
@@ -115,7 +111,7 @@ waitThread chan =
           Nothing -> return (Nothing, Nothing)
       case pollResult of
         (Just newChild, Nothing) -> go (newChild : polledChildren) []
-        (Just newChild, Just _) -> go polledChildren []
+        (Just _newChild, Just _) -> go polledChildren []
         (Nothing, _) -> do
           threadDelay waitDelay
           go [] (reverse polledChildren)
