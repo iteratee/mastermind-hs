@@ -8,15 +8,11 @@ load(
 )
 
 # Download rules_haskell and make it accessible as "@rules_haskell".
-#http_archive(
-#    name = "rules_haskell",
-#    strip_prefix = "rules_haskell-0.15",
-#    urls = ["https://github.com/tweag/rules_haskell/archive/v0.15.tar.gz"],
-#    sha256 = "aba3c16015a2363b16e2f867bdc5c792fa71c68cb97d8fe95fddc41e409d6ba8",
-#)
-local_repository(
+http_archive(
     name = "rules_haskell",
-    path = "/home/kyle/devel/rules_haskell",
+    strip_prefix = "rules_haskell-0.15",
+    urls = ["https://github.com/tweag/rules_haskell/archive/v0.15.tar.gz"],
+    sha256 = "aba3c16015a2363b16e2f867bdc5c792fa71c68cb97d8fe95fddc41e409d6ba8",
 )
 
 load(
